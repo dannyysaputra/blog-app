@@ -6,6 +6,8 @@ import { postService } from '../services/post.service';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 const postSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters'),
@@ -19,10 +21,13 @@ const CreatePost: React.FC = () => {
   const navigate = useNavigate();
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<'write' | 'preview'>('write');
 
-  const { register, handleSubmit, formState: { errors } } = useForm<PostFormData>({
+  const { register, handleSubmit, watch, formState: { errors } } = useForm<PostFormData>({
     resolver: zodResolver(postSchema),
   });
+
+  const content = watch('content');
 
   const onSubmit = async (data: PostFormData) => {
     setIsLoading(true);
@@ -78,15 +83,47 @@ const CreatePost: React.FC = () => {
         </div>
 
         <div>
-          <label htmlFor="content" className="block text-sm font-medium text-gray-700">Content</label>
-          <textarea
-            id="content"
-            rows={12}
-            placeholder="Tell your story..."
-            {...register('content')}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-4 py-3 shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-base leading-relaxed resize-y"
-          />
+          <div className="flex items-center justify-between mb-2">
+            <label htmlFor="content" className="block text-sm font-medium text-gray-700">Content</label>
+            <div className="flex space-x-2 bg-gray-100 p-1 rounded-lg">
+                <button
+                    type="button"
+                    onClick={() => setActiveTab('write')}
+                    className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${activeTab === 'write' ? 'bg-white shadow-sm text-black' : 'text-gray-500 hover:text-gray-700'}`}
+                >
+                    Write
+                </button>
+                <button
+                    type="button"
+                    onClick={() => setActiveTab('preview')}
+                    className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${activeTab === 'preview' ? 'bg-white shadow-sm text-black' : 'text-gray-500 hover:text-gray-700'}`}
+                >
+                    Preview
+                </button>
+            </div>
+          </div>
+          
+          {activeTab === 'write' ? (
+            <textarea
+                id="content"
+                rows={12}
+                placeholder="Tell your story... (Markdown supported)"
+                {...register('content')}
+                className="mt-1 block w-full rounded-md border border-gray-300 px-4 py-3 shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-base leading-relaxed resize-y font-mono text-sm"
+            />
+          ) : (
+            <div className="mt-1 w-full rounded-md border border-gray-200 bg-gray-50 px-8 py-6 min-h-[300px] prose prose-sm max-w-none">
+                {content ? (
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+                ) : (
+                    <p className="text-gray-400 italic">Nothing to preview yet...</p>
+                )}
+            </div>
+          )}
           {errors.content && <p className="mt-1 text-sm text-red-600">{errors.content.message}</p>}
+          <p className="mt-2 text-xs text-gray-500">
+            Styling with Markdown is supported. Use **bold**, *italics*, # headers, and more.
+          </p>
         </div>
 
         <div className="flex justify-end">
