@@ -1,52 +1,51 @@
 # Deployment Guide for KinBlog
 
-This guide covers deploying the **backend** to Heroku and the **frontend** to Netlify.
+This guide covers deploying the **backend** to Render and the **frontend** to Netlify.
 
 ---
 
-## 🏗️ 1. Backend Deployment (Heroku)
+## 🏗️ 1. Backend Deployment (Render)
+
+Render is a modern cloud provider that is easier to set up than Heroku for many use cases.
 
 ### Prerequisites
-*   [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli) installed.
-*   A Heroku account.
-*   Git installed.
+*   A [Render](https://render.com/) account.
+*   Your project pushed to GitHub/GitLab.
 
 ### Steps
 
-1.  **Prepare the Backend Code:**
-    *   Ensure your `backend/package.json` has a `start` script: `"start": "node dist/server.js"`.
-    *   Ensure you have a `Procfile` in the `backend` root (optional but recommended, or Heroku auto-detects Node.js). We will create one.
+1.  **Push Code to GitHub:**
+    *   Ensure your `kinetix-pro` project is in a GitHub repository.
 
-2.  **Create a Heroku App:**
-    ```bash
-    cd backend
-    heroku login
-    heroku create kinblog-api-YOUR_NAME  # Name must be unique
-    ```
+2.  **Create a New Web Service on Render:**
+    *   Log in to Render Dashboard -> "New +" -> "Web Service".
+    *   Connect your GitHub repository.
 
-3.  **Add MongoDB (Heroku Add-on or Atlas):**
-    *   **Option A (Easy):** Use a free MongoDB Atlas cluster and get the connection string (URI).
-    *   **Option B (Add-on):** `heroku addons:create mongolab:sandbox` (if available in your region).
+3.  **Configure Service Settings:**
+    *   **Name:** `kinblog-api` (or similar).
+    *   **Region:** Choose closest to you.
+    *   **Branch:** `master` (or `main`).
+    *   **Root Directory:** `backend` (Important!).
+    *   **Runtime:** `Node`
+    *   **Build Command:** `npm install && npm run build`
+    *   **Start Command:** `npm start`
 
 4.  **Configure Environment Variables:**
-    ```bash
-    heroku config:set NODE_ENV=production
-    heroku config:set JWT_SECRET=your_secure_random_secret_key
-    heroku config:set JWT_EXPIRES_IN=1d
-    heroku config:set MONGO_URI="mongodb+srv://..." # Your Atlas URI
-    ```
+    *   Scroll down to "Environment Variables" section.
+    *   Add the following:
+        *   `NODE_ENV`: `production`
+        *   `JWT_SECRET`: `your_secure_random_secret_key`
+        *   `JWT_EXPIRES_IN`: `1d`
+        *   `MONGO_URI`: `mongodb+srv://...` (Your MongoDB Atlas connection string).
 
 5.  **Deploy:**
-    Since your backend is in a subdirectory (`backend/`), we need to push only that folder or configure Heroku to use it. The easiest way for a monorepo structure without complex config is using `git subtree`.
+    *   Click "Create Web Service".
+    *   Render will start building your app. Watch the logs.
+    *   Once "Live", copy the service URL (e.g., `https://kinblog-api.onrender.com`).
 
-    From the **ROOT** of your project (`kinetix-pro/`):
-    ```bash
-    git subtree push --prefix backend heroku master
-    ```
-
-6.  **Verify:**
-    *   Check logs: `heroku logs --tail --app kinblog-api-YOUR_NAME`
-    *   Open URL: `https://kinblog-api-YOUR_NAME.herokuapp.com/` (Should see "Welcome to KinBlog API")
+### ⚠️ Important Note on Images (Render)
+Like Heroku, Render's disk is ephemeral on the free tier. Images uploaded to `uploads/` will persist only as long as the instance runs. If the service restarts (which free tiers do), images are lost.
+*   **Recommendation:** For a real app, switch `upload.middleware.ts` to upload to Cloudinary or AWS S3.
 
 ---
 
@@ -54,47 +53,31 @@ This guide covers deploying the **backend** to Heroku and the **frontend** to Ne
 
 ### Prerequisites
 *   A Netlify account.
-*   Your project pushed to GitHub/GitLab/Bitbucket.
+*   Your project pushed to GitHub.
 
 ### Steps
 
-1.  **Push Code to GitHub:**
-    *   Create a repository on GitHub.
-    *   Push your local `kinetix-pro` code to it.
-
-2.  **Create New Site on Netlify:**
+1.  **Create New Site on Netlify:**
     *   Log in to Netlify -> "Add new site" -> "Import from existing project".
     *   Select GitHub and choose your repository.
 
-3.  **Configure Build Settings:**
+2.  **Configure Build Settings:**
     *   **Base directory:** `frontend`
     *   **Build command:** `npm run build`
     *   **Publish directory:** `dist`
 
-4.  **Configure Environment Variables (Netlify):**
+3.  **Configure Environment Variables (Netlify):**
     *   Go to "Site configuration" -> "Environment variables".
     *   Add variable:
         *   Key: `VITE_API_BASE_URL`
-        *   Value: `https://kinblog-api-YOUR_NAME.herokuapp.com` (Your deployed Heroku backend URL, **NOT** localhost).
+        *   Value: `https://kinblog-api.onrender.com` (Your Render Backend URL).
 
-5.  **Deploy:**
+4.  **Deploy:**
     *   Click "Deploy Site".
-    *   Netlify will build your React app.
-
-6.  **Fix Client-Side Routing (Important):**
-    *   React Router needs a special file to handle refreshes on Netlify.
-    *   Create a file `frontend/public/_redirects` with the content:
-        ```
-        /*  /index.html  200
-        ```
-    *   (I will create this file for you now).
 
 ---
 
 ## ✅ Final Check
 1.  Open your Netlify URL.
-2.  Try registering a user.
-3.  Try creating a post.
-4.  If images don't load, ensure your Heroku `uploads/` folder strategy is persistent (Heroku filesystem is ephemeral; images vanish after restart).
-    *   *Note: For a real production app on Heroku, you should use AWS S3 or Cloudinary for image uploads. The current local `uploads/` storage is fine for MVP demos but files won't persist on Heroku restarts.*
-
+2.  Test Registration/Login.
+3.  Test Creating a Post.
