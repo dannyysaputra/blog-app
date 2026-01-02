@@ -1,15 +1,15 @@
 # Deployment Guide for KinBlog
 
-This guide covers deploying the **backend** to Vercel (or Render/Heroku) and the **frontend** to Netlify.
+This guide covers deploying the **backend** to Koyeb and the **frontend** to Netlify.
 
 ---
 
-## 🏗️ 1. Backend Deployment (Vercel) - Recommended
+## 🏗️ 1. Backend Deployment (Koyeb)
 
-Vercel is excellent for both frontend and serverless Node.js backends.
+Koyeb is a developer-friendly serverless platform that runs standard Node.js applications efficiently (like Render/Heroku).
 
 ### Prerequisites
-*   A [Vercel](https://vercel.com/) account.
+*   A [Koyeb](https://www.koyeb.com/) account.
 *   Your project pushed to GitHub.
 
 ### Steps
@@ -17,19 +17,21 @@ Vercel is excellent for both frontend and serverless Node.js backends.
 1.  **Push Code to GitHub:**
     *   Ensure your `kinetix-pro` project is in a GitHub repository.
 
-2.  **Import Project in Vercel:**
-    *   Log in to Vercel Dashboard -> "Add New..." -> "Project".
-    *   Connect your GitHub repository.
+2.  **Create a New App on Koyeb:**
+    *   Log in to Koyeb Dashboard -> "Create App".
+    *   Select **GitHub** as the deployment method.
+    *   Connect your repository.
 
-3.  **Configure Project Settings:**
-    *   **Framework Preset:** Other (or leave default).
-    *   **Root Directory:** `backend` (Click "Edit" next to Root Directory and select the `backend` folder).
-    *   **Build Command:** `npm run build` (Optional, Vercel infers).
-    *   **Output Directory:** `dist` (Optional).
+3.  **Configure Service Settings:**
+    *   **Repository:** Select your repo.
+    *   **Branch:** `master` (or `main`).
+    *   **Work Directory:** `backend` (Important! This tells Koyeb where the app lives).
+    *   **Builder:** `Standard` (Koyeb detects Node.js automatically).
+    *   **Build Command:** `npm install && npm run build`
+    *   **Run Command:** `npm start`
 
 4.  **Configure Environment Variables:**
-    *   Expand "Environment Variables".
-    *   Add:
+    *   In the "Environment Variables" section, add:
         *   `NODE_ENV`: `production`
         *   `JWT_SECRET`: `your_secure_random_secret_key`
         *   `JWT_EXPIRES_IN`: `1d`
@@ -37,27 +39,14 @@ Vercel is excellent for both frontend and serverless Node.js backends.
 
 5.  **Deploy:**
     *   Click "Deploy".
-    *   Vercel will build and deploy the backend as Serverless Functions.
-    *   Once live, copy the URL (e.g., `https://kinblog-api.vercel.app`).
+    *   Koyeb will build and start your application.
+    *   Once healthy, copy the Public URL (e.g., `https://kinblog-api-xyz.koyeb.app`).
 
-### ⚠️ Important Note on Images (Vercel)
-Vercel Serverless Functions are ephemeral and read-only.
-**You CANNOT upload images to the local `uploads/` folder.** The upload will fail or the image will vanish immediately.
-*   **Solution:** You must use a cloud storage service like AWS S3, Cloudinary, or Firebase Storage for user uploads in production.
-*   For this MVP demo on Vercel, **image upload will NOT persist**.
-
----
-
-## 🏗️ 1.1 Backend Deployment (Alternative: Render)
-
-If you prefer a traditional persistent server (which restarts occasionally but behaves like a normal Node app), use Render.
-
-1.  **Create Web Service on Render:**
-    *   Connect GitHub repo.
-    *   **Root Directory:** `backend`.
-    *   **Build Command:** `npm install && npm run build`.
-    *   **Start Command:** `npm start`.
-    *   **Environment Variables:** Add `MONGO_URI`, `JWT_SECRET`, etc.
+### ⚠️ Important Note on Images (Koyeb)
+Like other cloud platforms (Heroku, Render, Vercel), Koyeb instances are ephemeral.
+**Local uploads to `uploads/` will NOT persist across deployments or restarts.**
+*   **Solution:** For a production app, integrate Cloudinary or AWS S3 for storage.
+*   For this demo, images will work only as long as the current instance is running.
 
 ---
 
@@ -75,7 +64,7 @@ If you prefer a traditional persistent server (which restarts occasionally but b
 
 3.  **Configure Environment Variables (Netlify):**
     *   Key: `VITE_API_BASE_URL`
-    *   Value: `https://your-backend-url.vercel.app` (The URL you got from Vercel/Render).
+    *   Value: `https://kinblog-api-xyz.koyeb.app` (The URL you got from Koyeb).
 
 4.  **Deploy:**
     *   Click "Deploy Site".
